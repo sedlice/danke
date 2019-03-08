@@ -83,7 +83,8 @@ class MyFunc(object):
                     conn1 = psycopg2.connect(database="danke", user="postgres", password="pgadmin", host="127.0.0.1", port="5432")
                     cur1 = conn1.cursor()
                     cur1.execute(query_sql)
-                    jobdata = cur1.fetchall()
+                    if query_sql.find('select') != -1 or query_sql.find('delete') != -1:
+                        jobdata = cur1.fetchall()
                     conn1.commit()
                     cur1.close()
                     conn1.close()
