@@ -16,9 +16,9 @@ def get_html_info(index_num, dk_id, dk_url, dk_from, batch_time):
         response_obj = requests.get(dk_url, headers=headers)
         response_obj.encoding = 'utf-8'
         html_str = response_obj.text
-        if html_str.find('error404') != -1:
+        if html_str.find('erro404') != -1:
             add_time = myfunc.now_time_to_string('time')
-            data_tuple = (dk_id, '页面不存在', '', '', '', '', '', '', '', '', '', 
+            data_tuple = (dk_id, '页面不存在', '0', '', '', '', '0', '', '', '', '', 
                     '', '', '', '', '', '', '', batch_time, add_time)
             data_list = [data_tuple]
             myfunc.insert_into_pgsql('danke_%s_detail' % dk_from, data_list)
@@ -143,3 +143,4 @@ def run_spider():
 
 if __name__ == '__main__':
     run_spider()
+    # get_html_info(1, '1614746244', 'https://www.danke.com/room/1614746244.html', 'bj', '20190308')
