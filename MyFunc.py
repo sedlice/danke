@@ -99,7 +99,7 @@ class MyFunc(object):
         查询该表中除掉id以外所有字段拼成的字符串
         :param table_name: 表名称
         '''
-        if len(query_sql) > 0:
+        if len(table_name) > 0:
             for t in range(3):
                 try:
                     conn2 = psycopg2.connect(database="danke", user="postgres", password="pgadmin", host="127.0.0.1", port="5432")
