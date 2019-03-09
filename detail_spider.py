@@ -8,7 +8,11 @@ import urllib
 from bs4 import BeautifulSoup
 
 
+RETRY_TIMES = 0
+
+
 def get_html_info(index_num, dk_id, dk_url, dk_from, batch_time):
+    global RETRY_TIMES
     myfunc = MyFunc.MyFunc()
     time.sleep(random.randint(3,8))
     headers = {'user-agent': myfunc.choice_ua()}
@@ -37,8 +41,14 @@ def get_html_info(index_num, dk_id, dk_url, dk_from, batch_time):
             try:
                 urllib.request.urlretrieve(dk_img_url,'E://dankeImg/%s.jpg' % dk_id)
             except Exception as ex:
-                dk_img_url = 'https:%s' % dk_img_url
-                urllib.request.urlretrieve(dk_img_url,'E://dankeImg/%s.jpg' % dk_id)
+                if ex.code == 400:
+                    dk_img_url = dk_img_list[1]['src']
+                else:
+                    dk_img_url = 'https:%s' % dk_img_url
+                try:
+                    urllib.request.urlretrieve(dk_img_url,'E://dankeImg/%s.jpg' % dk_id)
+                except Exception as ex2:
+                    myfunc.write_to_log('img error:%s:%s' % (dk_id, str(ex)))
             if dk_name.find('主卧') != -1:
                 dk_room_type = '主卧'
             elif dk_name.find('次卧') != -1:
@@ -103,8 +113,10 @@ def get_html_info(index_num, dk_id, dk_url, dk_from, batch_time):
                 if tds[0].a is not None:
                     room_url = tds[0].a['href']
                     inner_list.append(room_url)
-                    room_id = room_url.split('/')[4].replace('.html', '')
-                    myfunc.execute_pgsql_sql("insert into danke_waiting_data(dk_id,dk_url,dk_from,batch_time) values('%s','%s','%s','%s')" % (room_id, room_url, dk_from, batch_time))
+                    exist_num = myfunc.execute_pgsql_sql("select count(id) from danke_bj_list where dk_id = '%s'" % dk_id)
+                    if exist_num[0][0] == 0:
+                        room_id = room_url.split('/')[4].replace('.html', '')
+                        myfunc.execute_pgsql_sql("insert into danke_waiting_data(dk_id,dk_url,dk_from,batch_time) values('%s','%s','%s','%s')" % (room_id, room_url, dk_from, batch_time))
                 inner_list.append(tds[1].string)
                 inner_list.append(tds[2].string)
                 inner_list.append(tds[6].string)
@@ -115,17 +127,24 @@ def get_html_info(index_num, dk_id, dk_url, dk_from, batch_time):
             data_tuple = (dk_id, dk_name, dk_price, dk_subway, dk_subway_info, dk_tags, dk_area, dk_house_type, dk_lease_type, dk_room_type, dk_direction, 
                         dk_district_big, dk_district_small, dk_community, dk_floor, dk_furnishing, dk_roommate, dk_url, batch_time, add_time)
             data_list = [data_tuple]
-            myfunc.insert_into_pgsql('danke_%s_detail' % dk_from, data_list)
+            exist_num = myfunc.execute_pgsql_sql("select count(id) from danke_bj_detail where batch_time='%s' and dk_id = '%s'" % (batch_time, dk_id))
+            if exist_num[0][0] == 0:
+                myfunc.insert_into_pgsql('danke_%s_detail' % dk_from, data_list)
             print('now index:%s dk_id:%s' % (index_num,dk_id))
     except Exception as ex:
         myfunc.write_to_log('code error:%s:%s' % (dk_id, str(ex)))
-        get_html_info(index_num, dk_id, dk_url, dk_from, batch_time)
+        RETRY_TIMES += 1
+        if RETRY_TIMES <= 3:
+            get_html_info(index_num, dk_id, dk_url, dk_from, batch_time)
+        else:
+            myfunc.write_to_log('retry error:%s' % dk_id)
 
 
 def run_spider():
+    global RETRY_TIMES
     myfun = MyFunc.MyFunc()
     while True:
-        result_set = myfun.execute_pgsql_sql('delete from danke_waiting_data where id in (select id from danke_waiting_data order by id limit 50) returning dk_id,dk_url,dk_from,batch_time')
+        result_set = myfun.execute_pgsql_sql('delete from danke_waiting_data where id in (select id from danke_waiting_data order by id limit 100) returning dk_id,dk_url,dk_from,batch_time')
         index_num = 0
         if len(result_set) > 0:
             for item in result_set:
@@ -134,13 +153,14 @@ def run_spider():
                 dk_url = item[1]
                 dk_from = item[2]
                 batch_time = item[3]
+                RETRY_TIMES = 0
                 get_html_info(index_num, dk_id, dk_url, dk_from, batch_time)
         else:
             break
-        print('跑完50条，暂停五分钟')
+        print('暂停五分钟')
         time.sleep(300)
 
 
 if __name__ == '__main__':
     run_spider()
-    # get_html_info(1, '1614746244', 'https://www.danke.com/room/1614746244.html', 'bj', '20190308')
+    # get_html_info(1, '1917060305', 'https://www.danke.com/room/1917060305.html', 'bj', '20190308')
