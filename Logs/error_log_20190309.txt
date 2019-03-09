@@ -1,0 +1,41 @@
+2019-03-09 13:36:27:code error:980620566:'URLError' object has no attribute 'code'========================
+2019-03-09 18:07:44:code error:1223462648:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:07:48:code error:1223462648:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:07:53:code error:1223462648:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:07:57:code error:1223462648:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:07:57:retry error:1223462648
+========================
+2019-03-09 18:08:02:code error:259648220:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:08:08:code error:259648220:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:08:13:code error:259648220:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:08:19:code error:259648220:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:08:19:retry error:259648220
+========================
+2019-03-09 18:08:22:code error:621102584:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:08:31:code error:621102584:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:08:39:code error:621102584:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:08:46:code error:621102584:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:08:46:retry error:621102584
+========================
+2019-03-09 18:08:53:code error:836149258:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:08:58:code error:836149258:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:09:04:code error:836149258:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:09:12:code error:836149258:'ValueError' object has no attribute 'code'
+========================
+2019-03-09 18:09:12:retry error:836149258
+========================

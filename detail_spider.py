@@ -14,7 +14,7 @@ RETRY_TIMES = 0
 def get_html_info(index_num, dk_id, dk_url, dk_from, batch_time):
     global RETRY_TIMES
     myfunc = MyFunc.MyFunc()
-    time.sleep(random.randint(3,8))
+    time.sleep(random.randint(3,5))
     headers = {'user-agent': myfunc.choice_ua()}
     try:
         response_obj = requests.get(dk_url, headers=headers)
@@ -131,8 +131,15 @@ def get_html_info(index_num, dk_id, dk_url, dk_from, batch_time):
             if exist_num[0][0] == 0:
                 myfunc.insert_into_pgsql('danke_%s_detail' % dk_from, data_list)
             print('now index:%s dk_id:%s' % (index_num,dk_id))
-    except Exception as ex:
+    except requests.HTTPError as ex:
         myfunc.write_to_log('code error:%s:%s' % (dk_id, str(ex)))
+        RETRY_TIMES += 1
+        if RETRY_TIMES <= 3:
+            get_html_info(index_num, dk_id, dk_url, dk_from, batch_time)
+        else:
+            myfunc.write_to_log('retry error:%s' % dk_id)
+    except Exception as e:
+        myfunc.write_to_log('code error:%s:%s' % (dk_id, str(e)))
         RETRY_TIMES += 1
         if RETRY_TIMES <= 3:
             get_html_info(index_num, dk_id, dk_url, dk_from, batch_time)
@@ -163,4 +170,4 @@ def run_spider():
 
 if __name__ == '__main__':
     run_spider()
-    # get_html_info(1, '1917060305', 'https://www.danke.com/room/1917060305.html', 'bj', '20190308')
+    # get_html_info(1, '980620566', 'https://www.danke.com/room/980620566.html', 'bj', '20190308')

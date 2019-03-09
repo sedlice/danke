@@ -37,7 +37,7 @@ class MyFunc(object):
         with open('Logs/error_log_%s.txt' % today_str, 'a', encoding='utf-8') as f:
             f.write(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             f.write(':%s' % error_str)
-            f.write('========================\n')
+            f.write('\n========================\n')
 
     
     def choice_ua(self, us_type='pc'):
