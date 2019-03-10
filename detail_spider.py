@@ -168,10 +168,11 @@ def run_spider():
                 batch_time = item[3]
                 RETRY_TIMES = 0
                 get_html_info(index_num, dk_id, dk_url, dk_from, batch_time)
+            print('暂停五分钟')
+            time.sleep(300)
         else:
+            print('任务已完成')
             break
-        print('暂停五分钟')
-        time.sleep(300)
 
 
 if __name__ == '__main__':
