@@ -37,18 +37,17 @@ def get_html_info(index_num, dk_id, dk_url, dk_from, batch_time):
             dk_name = dk_name.h1.string
             dk_img = html_obj.find('div', class_='carousel-inner')
             dk_img_list = dk_img.find_all('img')
-            dk_img_url = dk_img_list[0]['src']
-            try:
-                urllib.request.urlretrieve(dk_img_url,'E://dankeImg/%s.jpg' % dk_id)
-            except Exception as ex:
-                if ex.code == 400:
-                    dk_img_url = dk_img_list[1]['src']
-                else:
-                    dk_img_url = 'https:%s' % dk_img_url
+            list_len = len(dk_img_list)
+            for j in range(0, list_len):
+                dk_img_url = dk_img_list[j]['src']
                 try:
                     urllib.request.urlretrieve(dk_img_url,'E://dankeImg/%s.jpg' % dk_id)
-                except Exception as ex2:
-                    myfunc.write_to_log('img error:%s:%s' % (dk_id, str(ex)))
+                    break
+                except urllib.error.HTTPError as ex:
+                    j += 1
+                    continue
+                except Exception as err:
+                    break
             if dk_name.find('主卧') != -1:
                 dk_room_type = '主卧'
             elif dk_name.find('次卧') != -1:
@@ -113,7 +112,7 @@ def get_html_info(index_num, dk_id, dk_url, dk_from, batch_time):
                 if tds[0].a is not None:
                     room_url = tds[0].a['href']
                     inner_list.append(room_url)
-                    exist_num = myfunc.execute_pgsql_sql("select count(id) from danke_bj_list where dk_id = '%s'" % dk_id)
+                    exist_num = myfunc.execute_pgsql_sql("select count(id) from (select id from danke_waiting_data where dk_id = '%s' union select id from danke_bj_detail where dk_id='%s')t" % (dk_id, dk_id) )
                     if exist_num[0][0] == 0:
                         room_id = room_url.split('/')[4].replace('.html', '')
                         myfunc.execute_pgsql_sql("insert into danke_waiting_data(dk_id,dk_url,dk_from,batch_time) values('%s','%s','%s','%s')" % (room_id, room_url, dk_from, batch_time))
@@ -131,15 +130,22 @@ def get_html_info(index_num, dk_id, dk_url, dk_from, batch_time):
             if exist_num[0][0] == 0:
                 myfunc.insert_into_pgsql('danke_%s_detail' % dk_from, data_list)
             print('now index:%s dk_id:%s' % (index_num,dk_id))
-    except requests.HTTPError as ex:
+    except urllib.error.HTTPError as ex:
         myfunc.write_to_log('code error:%s:%s' % (dk_id, str(ex)))
         RETRY_TIMES += 1
         if RETRY_TIMES <= 3:
             get_html_info(index_num, dk_id, dk_url, dk_from, batch_time)
         else:
             myfunc.write_to_log('retry error:%s' % dk_id)
-    except Exception as e:
+    except urllib.error.URLError as e:
         myfunc.write_to_log('code error:%s:%s' % (dk_id, str(e)))
+        RETRY_TIMES += 1
+        if RETRY_TIMES <= 3:
+            get_html_info(index_num, dk_id, dk_url, dk_from, batch_time)
+        else:
+            myfunc.write_to_log('retry error:%s' % dk_id)
+    except Exception as err:
+        myfunc.write_to_log('code error:%s:%s' % (dk_id, str(err)))
         RETRY_TIMES += 1
         if RETRY_TIMES <= 3:
             get_html_info(index_num, dk_id, dk_url, dk_from, batch_time)
@@ -170,4 +176,4 @@ def run_spider():
 
 if __name__ == '__main__':
     run_spider()
-    # get_html_info(1, '980620566', 'https://www.danke.com/room/980620566.html', 'bj', '20190308')
+    # get_html_info(1, '1001682424', 'https://www.danke.com/room/1001682424.html', 'bj', '20190308')
