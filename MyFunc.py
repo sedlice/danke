@@ -167,7 +167,7 @@ class MyFunc(object):
                     continue
 
 
-    def update_pgsql(self, dkID):
+    def update_pgsql(self, dkID, dk_from):
         '''
         更新时间信息，以后可以用于判断哪些房子已经下架
         :param dkID: 房子的id
@@ -178,7 +178,7 @@ class MyFunc(object):
                 conn = psycopg2.connect(database="danke", user="postgres", password="pgadmin", host="127.0.0.1", port="5432")
                 cur = conn.cursor()
                 now_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                cur.execute("update danke_list set update_time='%s' where dk_id='%s'" % (now_time, dkID))
+                cur.execute("update danke_%s_list set update_time='%s' where dk_id='%s'" % (dk_from, now_time, dkID))
                 conn.commit()
                 print(u'data(%s) update success!' % dkID)
                 cur.close()

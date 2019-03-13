@@ -112,7 +112,7 @@ def get_html_info(index_num, dk_id, dk_url, dk_from, batch_time):
                 if tds[0].a is not None:
                     room_url = tds[0].a['href']
                     inner_list.append(room_url)
-                    exist_num = myfunc.execute_pgsql_sql("select count(id) from (select id from danke_waiting_data where dk_id = '%s' union select id from danke_bj_detail where dk_id='%s')t" % (dk_id, dk_id) )
+                    exist_num = myfunc.execute_pgsql_sql("select count(id) from (select id from danke_waiting_data where dk_id = '{0}' union select id from danke_{1}_detail where dk_id='{0}')t".format(dk_id, dk_from))
                     if exist_num[0][0] == 0:
                         room_id = room_url.split('/')[4].replace('.html', '')
                         myfunc.execute_pgsql_sql("insert into danke_waiting_data(dk_id,dk_url,dk_from,batch_time) values('%s','%s','%s','%s')" % (room_id, room_url, dk_from, batch_time))
@@ -126,7 +126,7 @@ def get_html_info(index_num, dk_id, dk_url, dk_from, batch_time):
             data_tuple = (dk_id, dk_name, dk_price, dk_subway, dk_subway_info, dk_tags, dk_area, dk_house_type, dk_lease_type, dk_room_type, dk_direction, 
                         dk_district_big, dk_district_small, dk_community, dk_floor, dk_furnishing, dk_roommate, dk_url, batch_time, add_time)
             data_list = [data_tuple]
-            exist_num = myfunc.execute_pgsql_sql("select count(id) from danke_bj_detail where batch_time='%s' and dk_id = '%s'" % (batch_time, dk_id))
+            exist_num = myfunc.execute_pgsql_sql("select count(id) from danke_%s_detail where batch_time='%s' and dk_id = '%s'" % (dk_from, batch_time, dk_id))
             if exist_num[0][0] == 0:
                 myfunc.insert_into_pgsql('danke_%s_detail' % dk_from, data_list)
             print('now index:%s dk_id:%s' % (index_num,dk_id))
@@ -157,7 +157,7 @@ def run_spider():
     global RETRY_TIMES
     myfun = MyFunc.MyFunc()
     while True:
-        result_set = myfun.execute_pgsql_sql('delete from danke_waiting_data where id in (select id from danke_waiting_data order by id limit 100) returning dk_id,dk_url,dk_from,batch_time')
+        result_set = myfun.execute_pgsql_sql("delete from danke_waiting_data where id in (select id from danke_waiting_data where dk_from='nj' order by id limit 100) returning dk_id,dk_url,dk_from,batch_time")
         index_num = 0
         if len(result_set) > 0:
             for item in result_set:
@@ -168,7 +168,7 @@ def run_spider():
                 batch_time = item[3]
                 RETRY_TIMES = 0
                 get_html_info(index_num, dk_id, dk_url, dk_from, batch_time)
-            print('暂停五分钟')
+            print('暂停')
             time.sleep(300)
         else:
             print('任务已完成')
